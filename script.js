@@ -1,11 +1,11 @@
 // Google Analytics setup
 window.dataLayer = window.dataLayer || [];
 function gtag() { dataLayer.push(arguments); }
-gtag('js', new Date());
-gtag('config', 'YOUR_TRACKING_ID');
 
-// Video play tracking
+// Video progress tracking
 const video = document.getElementById('test-video');
+const milestones = [25, 50, 75, 100]; // Percentage milestones
+let milestonesTracked = new Set();
 
 video.addEventListener('play', () => {
     console.log('Video started playing.');
@@ -20,6 +20,26 @@ video.addEventListener('pause', () => {
     gtag('event', 'pause', {
         event_category: 'Video',
         event_label: 'Test Video',
+    });
+});
+
+video.addEventListener('timeupdate', () => {
+    const currentTime = video.currentTime;
+    const duration = video.duration;
+
+    if (!duration) return; // Prevent division by zero
+    const percentWatched = Math.floor((currentTime / duration) * 100);
+
+    milestones.forEach(milestone => {
+        if (percentWatched >= milestone && !milestonesTracked.has(milestone)) {
+            milestonesTracked.add(milestone);
+            console.log(`Reached ${milestone}% of the video.`);
+            gtag('event', 'video_progress', {
+                event_category: 'Video',
+                event_label: 'Test Video',
+                progress: `${milestone}%`,
+            });
+        }
     });
 });
 
